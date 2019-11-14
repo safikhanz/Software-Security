@@ -55,26 +55,92 @@ public static void main(String[] args) {
 					}
 				}else if (userDecission == 2) {
 					System.out.println("Existing Account Checking!");
-					readAccountFile("Type1.txt");//Reading account info from file and updating LinkedList for both user name and password
-					System.out.println("Enter User Name:");
-					String userName = userInput.next();// Getting input for user names to check
-					//checking weather user name entered is not blank and already exits
-					if (userName!= null && !userName.equalsIgnoreCase("") && isUserNameExists(userName)) {
-						System.out.println("That account exists.");
-						System.out.println("Enter Password:");
-						String password = userInput.next();// Getting input for user password to check
-						//checking weather password entered is not blank and is matching with existing user name
-						if (password!= null && !password.equalsIgnoreCase("") && isCorrectPassword(password) && (isCorrectPass(password) == isUsernameExists(userName))) {
-							System.out.println("Password matched.");
+					System.out.println ("Please choose how you want to verify your credentials ?\n");
+					System.out.println("1. A plaintext username password pair, stored in text in a file\n");
+					System.out.println("2. A username and a hashed password, stored in some format in the file\n");
+					System.out.println("3. A username, a salt and the result of the hashed (password + salt), stored in some format in the file\n");
+					int fileDecision = userInput.nextInt();
+					if(fileDecision == 1) {
+						FILE_NAME = "Type1.txt";
+						readAccountFile(FILE_NAME, passwordList);//Reading account info from file and updating LinkedList for both user name and password
+						System.out.println("Enter User Name:");
+						String userName = userInput.next();// Getting input for user names to check
+						//checking weather user name entered is not blank and already exits
+						if (userName!= null && !userName.equalsIgnoreCase("") && isUserNameExists(userName)) {
+							System.out.println("That account exists.");
+							System.out.println("Enter Password:");
+							String password = userInput.next();// Getting input for user password to check
+							//checking weather password entered is not blank and is matching with existing user name
+							if (password!= null && !password.equalsIgnoreCase("") && isCorrectPassword(password) && (isCorrectPass(password) == isUsernameExists(userName))) {
+								System.out.println("Password matched.");
+							}else {
+								System.out.println("Password does not match.");
+							}
 						}else {
-							System.out.println("Password does not match.");
+							System.out.println("That account does not exist.");
 						}
-					}else {
-						System.out.println("That account does not exist.");
+					}else if (fileDecision == 2) {
+						FILE_NAME = "Type2.txt";
+						readAccountFile(FILE_NAME, passwordList);//Reading account info from file and updating LinkedList for both user name and password
+						System.out.println("Enter User Name:");
+						String userName = userInput.next();// Getting input for user name to create
+						//checking weather user name entered is not blank and already exits
+						if (userName!= null && !userName.equalsIgnoreCase("") && isUserNameExists(userName)) {
+							System.out.println("That account exists.");
+							System.out.println("Enter Password:");
+							String password = userInput.next();// Getting input for user password to check
+							//checking weather password entered is not blank and is matching with existing user name
+							password = generateHash(password,"MD5");
+							if (password!= null && !password.equalsIgnoreCase("") && isCorrectPassword(password) && (isCorrectPass(password) == isUsernameExists(userName))) {
+								System.out.println("Password matched.");
+							}else {
+								System.out.println("Password does not match.");
+							}
+						}else {
+							System.out.println("That account does not exist.");
+						}
+					}else if (fileDecision == 3) {
+						FILE_NAME = "Type3.txt";
+						readAccountFile(FILE_NAME, passwordList);//Reading account info from file and updating LinkedList for both user name and password
+						String Salt = "abc"; // Salt for hashing the password
+						System.out.println("Enter User Name:");
+						String userName = userInput.next();// Getting input for user name to create
+						//checking weather user name entered is not blank and already exits
+						if (userName!= null && !userName.equalsIgnoreCase("") && isUserNameExists(userName)) {
+							System.out.println("That account exists.");
+							System.out.println("Enter Password:");
+							String password = userInput.next();// Getting input for user password to check
+							password = generateHashSalt(password, "MD5", Salt);
+							//checking weather password entered is not blank and is matching with existing user name
+							if (password!= null && !password.equalsIgnoreCase("") && isCorrectPassword(password) && (isCorrectPass(password) == isUsernameExists(userName))) {
+								System.out.println("Password matched.");
+							}else {
+								System.out.println("Password does not match.");
+							}
+						}else {
+							System.out.println("That account does not exist.");
+						}
 					}
+//					readAccountFile("Type1.txt", passwordList);//Reading account info from file and updating LinkedList for both user name and password
+//					System.out.println("Enter User Name:");
+//					String userName = userInput.next();// Getting input for user names to check
+//					//checking weather user name entered is not blank and already exits
+//					if (userName!= null && !userName.equalsIgnoreCase("") && isUserNameExists(userName)) {
+//						System.out.println("That account exists.");
+//						System.out.println("Enter Password:");
+//						String password = userInput.next();// Getting input for user password to check
+//						//checking weather password entered is not blank and is matching with existing user name
+//						if (password!= null && !password.equalsIgnoreCase("") && isCorrectPassword(password) && (isCorrectPass(password) == isUsernameExists(userName))) {
+//							System.out.println("Password matched.");
+//						}else {
+//							System.out.println("Password does not match.");
+//						}
+//					}else {
+//						System.out.println("That account does not exist.");
+//					}
 				}else if (userDecission == 3) {
 					System.out.println("Goodbye.");
-					System.exit(0);//Terminating the while loop and program
+				System.exit(0);//Terminating the while loop and program
 				}
 			}
 		}catch (Exception e) {
@@ -92,7 +158,7 @@ public static void main(String[] args) {
 			//This method is to check weather user name is exits in LinkedList
 			public static boolean isUserNameExists(String userName) {
 				boolean isExistsFlag = false;//user name exits flag, if exits set as true else false
-				int indexC =0;
+				
 				if (userNameList!= null) {
 					//iterating user name LinkedList
 					for (int i=0;i<userNameList.size();i++) {
@@ -162,21 +228,31 @@ public static void main(String[] args) {
 				return indexP ;
 			}
 		//This method is to read account text file and update user name and password LinkedList
-			public static void readAccountFile( String file) {
+			public static void readAccountFile( String file, LinkedList<String> PassList) {
 				Scanner inStream = null;
 				try {
 					userNameList.clear();//Initially clearing LinkedList for fresh update
-					passwordList.clear();//Initially clearing LinkedList for fresh update
+					PassList.clear();//Initially clearing LinkedList for fresh update
 					File fileInput = new File(file); //Creating new file
 					inStream = new Scanner(fileInput); //Creating new Scanner in stream
 					// Iterating each line of file
+					if(inStream.hasNext()==true)
+					{
+						inStream.nextLine();
+					}
+					else
+					{
+					    System.out.println("Error: File is empty");
+					    
+					}
+
 					while (inStream.hasNext()) {
 						String line = inStream.nextLine();//getting new line from text file
 						String[] lineArray = line.trim().split("\\t+");//Splitting each line by space to get string array
 						String userName = lineArray[0];//Getting user name from first index of string array
 						userNameList.add(userName);//Adding user name into LinkedList
 						String password = lineArray[1];//Getting password from second index of string array
-						passwordList.add(password);//Adding password into LinkedList in same index
+						PassList.add(password);//Adding password into LinkedList in same index
 					}
 				}catch (FileNotFoundException e) {
 					e.printStackTrace();
@@ -192,6 +268,8 @@ public static void main(String[] args) {
 					}
 				}
 		}
+			
+			
 			public static void writeToFile(String userName, String password, String fileName) {
 				FileWriter fw = null;
 				BufferedWriter bw = null;
@@ -254,10 +332,10 @@ public static void main(String[] args) {
 						fw = new FileWriter(fileName);// creating File Writer to write and append text file, true argument is to append new line
 						bw = new BufferedWriter(fw);// creating Buffered Writer to write text file
 						if(file.length() == 0){
-							bw.write("Username \tSalt \t Password");
+							bw.write("Username \tPassword \t\t\t\t\t Salt");
 							bw.newLine();//going to next line
 						}
-						bw.append(userName + "\t\t" + Salt + "\t" + password);//adding new line of user name and password separated by space
+						bw.append(userName + "\t\t" + password + "\t\t" + Salt);//adding new line of user name and password separated by space
 						bw.newLine();//going to next line
 						
 						bw.flush();// Flushing Buffered Writer
@@ -267,10 +345,10 @@ public static void main(String[] args) {
 					fw = new FileWriter(fileName, true);// creating File Writer to write and append text file, true argument is to append new line
 					bw = new BufferedWriter(fw);// creating Buffered Writer to write text file
 					if(file.length() == 0){
-						bw.write("Username \tSalt \t Password");
+						bw.write("Username \tPassword \t\t\t\t\t Salt");
 						bw.newLine();//going to next line
 					}
-					bw.append(userName + "\t\t" + Salt + "\t" +password);//adding new line of user name and password separated by space
+					bw.append(userName + "\t\t" + password + "\t\t" + Salt);//adding new line of user name and password separated by space
 					bw.newLine();//going to next line
 					
 					bw.flush();// Flushing Buffered Writer
@@ -300,6 +378,15 @@ public static void main(String[] args) {
 				return bytesToStringHex(hash);
 			}
 			
+			public static String generateHashLink(LinkedList<String> data, String algorithm) throws NoSuchAlgorithmException {
+				MessageDigest digest = MessageDigest.getInstance(algorithm);
+				byte [] hash = null;
+				digest.reset();
+				for(int i=0; i<data.size(); i++) {
+				 hash = digest.digest((data.get(i)).getBytes());
+				}
+				return bytesToStringHex(hash);
+			}
 			public static String generateHashSalt(String data, String algorithm, String Salt) throws NoSuchAlgorithmException {
 				MessageDigest digest = MessageDigest.getInstance(algorithm);
 				digest.reset();
